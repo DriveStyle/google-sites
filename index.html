@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <style>
+    /* Стили для ползунка */
+    .switch {
+      position: relative;
+      display: inline-block;
+      width: 60px;
+      height: 34px;
+    }
+    .slider {
+      position: absolute;
+      cursor: pointer;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-color: #ccc;
+      transition: .4s;
+      border-radius: 34px;
+    }
+    .slider:before {
+      position: absolute;
+      content: "";
+      height: 26px;
+      width: 26px;
+      left: 4px;
+      bottom: 4px;
+      background-color: white;
+      transition: .4s;
+      border-radius: 50%;
+    }
+    input:checked + .slider {
+      background-color: #4CAF50;
+    }
+    input:checked + .slider:before {
+      transform: translateX(26px);
+    }
+    
+    /* Стили для статусов */
+    .in-stock {
+      color: #4CAF50; /* Зеленый */
+      font-weight: bold;
+    }
+    .out-of-stock {
+      color: #FF0000; /* Красный */
+      font-weight: bold;
+    }
+    
+    /* Админ-панель */
+    .admin-panel {
+      background: #f5f5f5;
+      padding: 15px;
+      margin: 20px 0;
+      border-radius: 8px;
+      display: none;
+    }
+  </style>
+</head>
+<body>
+
+<!-- Для посетителей -->
+<div class="product-status">
+  <span id="public-status" class="in-stock">В наявності</span>
+</div>
+
+<!-- Админ-панель -->
+<div class="admin-panel" id="adminPanel">
+  <h3>Адмін-панель</h3>
+  <label class="switch">
+    <input type="checkbox" id="adminToggle" checked>
+    <span class="slider"></span>
+  </label>
+  <span id="admin-status" class="in-stock">В наявності</span>
+</div>
+
+<input type="password" id="adminPassword" placeholder="Введіть пароль">
+<button onclick="unlockAdmin()">Розблокувати</button>
+
+<script>
+  const ADMIN_PASSWORD = "2102";
+  const adminPanel = document.getElementById("adminPanel");
+  const adminToggle = document.getElementById("adminToggle");
+  const publicStatus = document.getElementById("public-status");
+  const adminStatus = document.getElementById("admin-status");
+  
+  // Загрузка сохраненного статуса
+  const savedStatus = localStorage.getItem("productStatus");
+  if (savedStatus) {
+    updateStatus(savedStatus === "В наявності");
+  } else {
+    // Установка начального значения
+    localStorage.setItem("productStatus", "В наявності");
+  }
+  
+  // Обновление статуса
+  function updateStatus(isAvailable) {
+    const status = isAvailable ? "В наявності" : "Немає у наявності";
+    const statusClass = isAvailable ? "in-stock" : "out-of-stock";
+    
+    publicStatus.textContent = status;
+    publicStatus.className = statusClass;
+    adminStatus.textContent = status;
+    adminStatus.className = statusClass;
+    adminToggle.checked = isAvailable;
+    
+    localStorage.setItem("productStatus", status);
+  }
+  
+  // Переключение
+  adminToggle.addEventListener("change", function() {
+    updateStatus(this.checked);
+  });
+  
+  // Разблокировка
+  function unlockAdmin() {
+    if (document.getElementById("adminPassword").value === ADMIN_PASSWORD) {
+      adminPanel.style.display = "block";
+      // Установка правильного статуса при разблокировке
+      updateStatus(adminToggle.checked);
+    } else {
+      alert("Невірний пароль!");
+    }
+    return false; // Предотвращаем перезагрузку страницы
+  }
+</script>
+
+</body>
+</html>
