@@ -39,22 +39,30 @@
     }
     
     /* Стили для статусов */
-    .in-stock {
-      color: #4CAF50; /* Зеленый */
+    .status {
       font-weight: bold;
+      margin-left: 10px;
+      font-size: 18px;
+    }
+    .in-stock {
+      color: #4CAF50;
     }
     .out-of-stock {
-      color: #FF0000; /* Красный */
-      font-weight: bold;
+      color: #FF0000;
     }
     
-    /* Админ-панель */
+    /* Стили для админ-панели */
+    .admin-section {
+      display: none;
+    }
     .admin-panel {
       background: #f5f5f5;
       padding: 15px;
       margin: 20px 0;
       border-radius: 8px;
-      display: none;
+    }
+    #passwordSection {
+      margin-top: 20px;
     }
   </style>
 </head>
@@ -62,53 +70,62 @@
 
 <!-- Для посетителей -->
 <div class="product-status">
-  <span id="public-status" class="in-stock">В наявності</span>
+  <span id="public-status" class="status in-stock">✅ В наявності</span>
 </div>
 
-<!-- Админ-панель -->
-<div class="admin-panel" id="adminPanel">
-  <h3>Адмін-панель</h3>
-  <label class="switch">
-    <input type="checkbox" id="adminToggle" checked>
-    <span class="slider"></span>
-  </label>
-  <span id="admin-status" class="in-stock">В наявності</span>
+<!-- Админ-секция -->
+<div class="admin-section" id="adminSection">
+  <div class="admin-panel">
+    <h3>Адмін-панель</h3>
+    <label class="switch">
+      <input type="checkbox" id="adminToggle" checked>
+      <span class="slider"></span>
+    </label>
+    <span id="admin-status" class="status in-stock">✅ В наявності</span>
+  </div>
 </div>
 
-<input type="password" id="adminPassword" placeholder="Введіть пароль">
-<button onclick="unlockAdmin()">Розблокувати</button>
+<!-- Поле ввода пароля -->
+<div id="passwordSection">
+  <input type="password" id="adminPassword" placeholder="Введіть пароль">
+  <button onclick="unlockAdmin()">Розблокувати</button>
+</div>
 
 <script>
   const ADMIN_PASSWORD = "2102";
-  const adminPanel = document.getElementById("adminPanel");
+  const adminSection = document.getElementById("adminSection");
+  const passwordSection = document.getElementById("passwordSection");
   const adminToggle = document.getElementById("adminToggle");
   const publicStatus = document.getElementById("public-status");
   const adminStatus = document.getElementById("admin-status");
+  
+  // Проверка авторизации
+  if (localStorage.getItem("adminAuthenticated") === "true") {
+    passwordSection.style.display = "none";
+    adminSection.style.display = "block";
+  }
   
   // Загрузка сохраненного статуса
   const savedStatus = localStorage.getItem("productStatus");
   if (savedStatus) {
     updateStatus(savedStatus === "В наявності");
-  } else {
-    // Установка начального значения
-    localStorage.setItem("productStatus", "В наявності");
   }
   
-  // Обновление статуса
+  // Обновление статуса с эмодзи
   function updateStatus(isAvailable) {
-    const status = isAvailable ? "В наявності" : "Немає у наявності";
+    const status = isAvailable ? "✅ В наявності" : "❌ Немає у наявності";
     const statusClass = isAvailable ? "in-stock" : "out-of-stock";
     
-    publicStatus.textContent = status;
-    publicStatus.className = statusClass;
-    adminStatus.textContent = status;
-    adminStatus.className = statusClass;
+    publicStatus.innerHTML = status;
+    publicStatus.className = "status " + statusClass;
+    adminStatus.innerHTML = status;
+    adminStatus.className = "status " + statusClass;
     adminToggle.checked = isAvailable;
     
-    localStorage.setItem("productStatus", status);
+    localStorage.setItem("productStatus", isAvailable ? "В наявності" : "Немає у наявності");
   }
   
-  // Переключение
+  // Переключение статуса
   adminToggle.addEventListener("change", function() {
     updateStatus(this.checked);
   });
@@ -116,13 +133,14 @@
   // Разблокировка
   function unlockAdmin() {
     if (document.getElementById("adminPassword").value === ADMIN_PASSWORD) {
-      adminPanel.style.display = "block";
-      // Установка правильного статуса при разблокировке
+      localStorage.setItem("adminAuthenticated", "true");
+      passwordSection.style.display = "none";
+      adminSection.style.display = "block";
       updateStatus(adminToggle.checked);
     } else {
       alert("Невірний пароль!");
     }
-    return false; // Предотвращаем перезагрузку страницы
+    return false;
   }
 </script>
 
